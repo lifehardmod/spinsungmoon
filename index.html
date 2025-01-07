@@ -14,6 +14,7 @@
       background-color: #1a1a1a;
       overflow: hidden;
       font-family: sans-serif;
+      position: relative; /* To position the button */
     }
 
     .scene {
@@ -36,7 +37,7 @@
       position: relative;
       overflow: hidden;
       background-size: contain; /* cover에서 contain으로 변경 */
-      border-radius: 4;
+      border-radius: 4px; /* Fixed the border-radius */
     }
 
     /* 빛 효과를 위한 스타일 */
@@ -52,6 +53,32 @@
       transform: translate(-50%, -50%);
       transition: transform 0.1s ease-out;
     }
+
+    /* Auto Rotate Button Styles */
+    .auto-button {
+      position: absolute;
+      bottom: 100px;
+      padding: 10px 20px;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .auto-button:hover {
+      background-color: #e64a19;
+    }
+
+    .auto-button.active {
+      background-color: #4caf50;
+    }
+
+    .auto-button.active:hover {
+      background-color: #43a047;
+    }
   </style>
 </head>
 <body>
@@ -61,10 +88,14 @@
     </div>
   </div>
 
+  <!-- Auto Rotate Button -->
+  <button class="auto-button" id="auto-btn">Auto Rotate</button>
+
   <script>
     const card = document.getElementById('pikachu-card');
     const lightRay = document.getElementById('light-ray');
     const scene = document.getElementById('scene');
+    const autoBtn = document.getElementById('auto-btn');
 
     let isDragging = false;
     let startX = 0;
@@ -76,6 +107,11 @@
     let scale = 1; // 초기 스케일
     const minScale = 0.8; // 최소 스케일
     const maxScale = 1.5; // 최대 스케일
+
+    // Auto Rotate Variables
+    let isAutoRotating = false;
+    let autoRotateId = null;
+    const autoRotateSpeed = 2.0; // Adjust rotation speed as needed
 
     const updateRotation = () => {
       rotationX += inertiaY * 0.1;
@@ -97,6 +133,10 @@
       startX = e.clientX;
       startY = e.clientY;
       card.style.cursor = 'grabbing';
+      // If auto-rotating, stop it while dragging
+      if (isAutoRotating) {
+        toggleAutoRotate();
+      }
     };
 
     const handleMouseMove = (e) => {
@@ -152,6 +192,10 @@
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       card.style.cursor = 'grabbing';
+      // If auto-rotating, stop it while dragging
+      if (isAutoRotating) {
+        toggleAutoRotate();
+      }
     };
 
     const handleTouchMove = (e) => {
@@ -184,6 +228,29 @@
       requestAnimationFrame(updateRotation);
     };
 
+    // Auto Rotate Functionality
+    const autoRotate = () => {
+      rotationY += autoRotateSpeed;
+      card.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${scale})`;
+      autoRotateId = requestAnimationFrame(autoRotate);
+    };
+
+    const toggleAutoRotate = () => {
+      if (isAutoRotating) {
+        // Stop Auto Rotate
+        cancelAnimationFrame(autoRotateId);
+        isAutoRotating = false;
+        autoBtn.textContent = 'Auto Rotate';
+        autoBtn.classList.remove('active');
+      } else {
+        // Start Auto Rotate
+        autoRotate();
+        isAutoRotating = true;
+        autoBtn.textContent = 'Stop';
+        autoBtn.classList.add('active');
+      }
+    };
+
     // 이벤트 리스너 추가
     card.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
@@ -204,6 +271,9 @@
     card.addEventListener('touchcancel', () => {
       lightRay.style.transform = `translate(-50%, -50%)`;
     });
+
+    // Auto Rotate Button Event Listener
+    autoBtn.addEventListener('click', toggleAutoRotate);
   </script>
 </body>
 </html>
